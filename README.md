@@ -66,6 +66,16 @@ curl -X POST http://localhost:8000/api/summarize \
 | `RATE_LIMIT` | no | `5/minute` | Rate limit for `POST /api/summarize`, per IP |
 | `CACHE_TTL_SECONDS` | no | `86400` | How long cached results stay valid |
 | `CACHE_MAX_SIZE` | no | `500` | Max cached results held in memory |
+| `WEBSHARE_PROXY_USERNAME` | on cloud hosts | — | Webshare proxy username (see note below) |
+| `WEBSHARE_PROXY_PASSWORD` | on cloud hosts | — | Webshare proxy password |
+
+> **Note on `WEBSHARE_PROXY_*`:** YouTube blocks transcript requests from
+> datacenter IPs (Render, Railway, AWS, etc.), so a deployed backend needs to
+> route through a proxy or every request will fail with a
+> "YouTube is blocking requests from your IP" error — even though it works
+> fine locally. Sign up free at https://www.webshare.io, grab the proxy
+> username/password from Dashboard > Proxy, and set them as env vars on your
+> host. Not needed for local dev.
 
 > **Note on `GEMINI_MODEL`:** the original spec targeted `gemini-2.5-flash`,
 > but as of mid-2026 that model is no longer available to new API
@@ -138,8 +148,10 @@ extra build config required.
 2. Create a new Web Service on Render (or a service on Railway), point it at
    `backend/` as the root/build directory, and let it build from the
    Dockerfile.
-3. Set the environment variables from the table above (`GEMINI_API_KEY` is
-   the only required one) in the platform's dashboard.
+3. Set the environment variables from the table above in the platform's
+   dashboard: `GEMINI_API_KEY` is required, and `WEBSHARE_PROXY_USERNAME`
+   / `WEBSHARE_PROXY_PASSWORD` are required for transcripts to work at all
+   (YouTube blocks Render/Railway's IPs otherwise — see the note above).
 4. Once deployed, set `CORS_ORIGINS` to your deployed frontend URL.
 
 ### Frontend → Vercel

@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = 86400
     cache_max_size: int = 500
 
+    # Optional: routes youtube-transcript-api requests through a Webshare
+    # proxy. Needed on cloud hosts (Render/Railway/etc.) since YouTube blocks
+    # datacenter IPs; not needed for local dev. Get credentials at webshare.io.
+    webshare_proxy_username: str = ""
+    webshare_proxy_password: str = ""
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

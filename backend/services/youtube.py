@@ -7,9 +7,22 @@ from youtube_transcript_api._errors import (
     NoTranscriptFound,
     TranscriptsDisabled,
 )
+from youtube_transcript_api.proxies import WebshareProxyConfig
+
+from config import settings
 
 _VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 _PREFERRED_LANGUAGES = ["en", "en-US", "en-GB"]
+
+# YouTube blocks requests from cloud-provider IPs (Render, Railway, AWS, ...),
+# so on a deployed backend we have to route transcript fetches through a
+# residential proxy. Not needed for local dev, where WEBSHARE_* is unset.
+_proxy_config = None
+if settings.webshare_proxy_username and settings.webshare_proxy_password:
+    _proxy_config = WebshareProxyConfig(
+        proxy_username=settings.webshare_proxy_username,
+        proxy_password=settings.webshare_proxy_password,
+    )
 
 
 class InvalidYouTubeURLError(Exception):
@@ -63,7 +76,7 @@ def extract_video_id(url: str) -> str:
 
 
 def fetch_transcript(video_id: str) -> str:
-    api = YouTubeTranscriptApi()
+    api = YouTubeTranscriptApi(proxy_config=_proxy_config)
 
     try:
         transcript_list = api.list(video_id)
